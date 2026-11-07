@@ -125,3 +125,8 @@ http://localhost:8501
 - Average unemployment rate across all states: **~11.79%**
 - Maximum recorded unemployment rate: **76.74%**
 
+---
+
+## Internship
+
+This project was developed as part of the **Oasis Infobyte Data Science Internship**.
