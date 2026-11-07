@@ -6,7 +6,8 @@ import base64
 import os
 
 # PAGE CONFIGURATION
-st.set_page_config(page_title="Unemployment Analysis", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Unemployment Analysis", page_icon=" ", layout="wide")
+
 
 # BACKGROUND IMAGE + WHITE TEXT THEME
 def set_background(image_file):
@@ -15,6 +16,7 @@ def set_background(image_file):
         return
     with open(image_file, "rb") as file:
         encoded = base64.b64encode(file.read()).decode()
+
     st.markdown(
         f"""
         <style>
@@ -26,7 +28,6 @@ def set_background(image_file):
                     rgba(3, 12, 30, 0.48)
                 ),
                 url("data:image/jpeg;base64,{encoded}");
-
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -115,47 +116,70 @@ def set_background(image_file):
         unsafe_allow_html=True
     )
 
+
 set_background("images/background.jpg")
+
 
 # LOAD DATASET
 @st.cache_data
 def load_data():
+
     possible_files = ["Unemployment in India.csv", "Unemployment_in_India.csv"]
     file_path = None
+
     for file in possible_files:
         if os.path.exists(file):
             file_path = file
             break
+
     if file_path is None:
         return None
+
+    # Read Dataset
     df = pd.read_csv(file_path)
+
+    # Remove Extra Spaces from Column Names
     df.columns = df.columns.str.strip()
 
+    # Convert Date Column
     if "Date" in df.columns:
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce", dayfirst=True)
-    numeric_columns = ["Estimated Unemployment Rate (%)", "Estimated Employed", "Estimated Labour Participation Rate (%)"]
 
+    # Convert Numerical Columns
+    numeric_columns = ["Estimated Unemployment Rate (%)", "Estimated Employed", "Estimated Labour Participation Rate (%)"]
     for col in numeric_columns:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # Clean Text Columns
     if "Region" in df.columns:
-        df["Region"] = df["Region"].astype(str).str.strip()
+        df["Region"] = df["Region"].astype("string").str.strip()
+
     if "Area" in df.columns:
-        df["Area"] = df["Area"].astype(str).str.strip()
+        df["Area"] = df["Area"].astype("string").str.strip()
+
+    # Remove Missing Values
+    df = df.dropna(subset=[ "Region", "Date", "Estimated Unemployment Rate (%)", "Estimated Employed", "Estimated Labour Participation Rate (%)"])
+
+    # Remove Duplicate Records
     df = df.drop_duplicates()
     return df
 
 df = load_data()
 
+
+# CHECK DATASET
 if df is None:
     st.error("Dataset not found! Keep your CSV file in the same folder as app.py.")
     st.stop()
+
 
 # CHECK REQUIRED COLUMN
 rate_column = "Estimated Unemployment Rate (%)"
 if rate_column not in df.columns:
     st.error("Unemployment rate column is missing from the dataset.")
     st.stop()
+
 
 # SIDEBAR NAVIGATION
 st.sidebar.title("Unemployment Analysis")
@@ -167,14 +191,7 @@ st.sidebar.info("Python Data Science Project")
 
 # PLOTLY THEME FUNCTION
 def apply_chart_theme(fig):
-    fig.update_layout(
-        template="plotly_dark",
-        paper_bgcolor="rgba(3, 12, 30, 0.65)",
-        plot_bgcolor="rgba(3, 12, 30, 0.45)",
-        font=dict(color="white"),
-        title_font=dict(color="#00E5FF"),
-        legend=dict(font=dict(color="white"))
-    )
+    fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(3, 12, 30, 0.65)", plot_bgcolor="rgba(3, 12, 30, 0.45)", font=dict(color="white"), title_font=dict(color="#00E5FF"), legend=dict(font=dict(color="white")))
     return fig
 
 
@@ -184,6 +201,7 @@ if page == "Home":
     st.subheader("Welcome to Unemployment Analysis Dashboard")
     st.write("""This project analyzes unemployment trends in India using Python, Pandas, NumPy, Plotly and Streamlit.""")
     st.markdown("---")
+
     st.markdown("### Project Objectives")
     st.markdown(
         """
@@ -223,28 +241,14 @@ elif page == "Dashboard":
     # Monthly Trend
     if "Date" in df.columns:
         monthly_data = (df.dropna(subset=["Date"]).set_index("Date").resample("ME")[rate_column].mean().reset_index())
-        fig = px.line(
-            monthly_data,
-            x="Date",
-            y=rate_column,
-            title="Monthly Unemployment Rate Trend",
-            markers=True,
-            color_discrete_sequence=["#00E5FF"]
-        )
+        fig = px.line(monthly_data, x="Date", y=rate_column, title="Monthly Unemployment Rate Trend", markers=True, color_discrete_sequence=["#00E5FF"])
         apply_chart_theme(fig)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart( fig, use_container_width=True)
 
     # State-wise Analysis
     if "Region" in df.columns:
         state_data = (df.groupby("Region")[rate_column].mean().reset_index().sort_values(by=rate_column, ascending=False).head(10))
-        fig = px.bar(
-            state_data,
-            x="Region",
-            y=rate_column,
-            title="Top 10 Regions by Average Unemployment Rate",
-            color=rate_column,
-            color_continuous_scale="Blues"
-        )
+        fig = px.bar(state_data, x="Region", y=rate_column, title="Top 10 Regions by Average Unemployment Rate", color=rate_column, color_continuous_scale="Blues")
         apply_chart_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
 
@@ -252,6 +256,7 @@ elif page == "Dashboard":
 # STATE ANALYSIS PAGE
 elif page == "State Analysis":
     st.title("State-wise Unemployment Analysis")
+
     if "Region" not in df.columns:
         st.error("Region column is missing.")
         st.stop()
@@ -259,33 +264,17 @@ elif page == "State Analysis":
     state_data = df[df["Region"] == selected_region].copy()
     st.subheader(f"Analysis for {selected_region}")
 
+    # State-wise Trend
     if "Date" in state_data.columns:
         state_data = state_data.sort_values("Date")
-        fig = px.line(
-            state_data,
-            x="Date",
-            y=rate_column,
-            title=f"Unemployment Trend - {selected_region}",
-            markers=True,
-            color_discrete_sequence=["#00E5FF"]
-        )
+        fig = px.line(state_data, x="Date", y=rate_column, title=f"Unemployment Trend - {selected_region}", markers=True, color_discrete_sequence=["#00E5FF"])
         apply_chart_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
 
     # Rural vs Urban Analysis
     if "Area" in state_data.columns:
         area_data = (state_data.groupby("Area")[rate_column].mean().reset_index())
-        fig = px.bar(
-            area_data,
-            x="Area",
-            y=rate_column,
-            color="Area",
-            title="Rural vs Urban Unemployment",
-            color_discrete_sequence=[
-                "#00D9FF",
-                "#0077B6"
-            ]
-        )
+        fig = px.bar(area_data, x="Area", y=rate_column, color="Area", title="Rural vs Urban Unemployment", color_discrete_sequence=[ "#00D9FF",  "#0077B6"])
         apply_chart_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
     st.subheader("State Dataset")
@@ -302,17 +291,7 @@ elif page == "COVID Analysis":
     covid_data = df.dropna(subset=["Date"]).copy()
     covid_data["Period"] = np.where(covid_data["Date"] < covid_date, "Before COVID", "After COVID")
     comparison = (covid_data.groupby("Period")[rate_column].mean().reset_index())
-    fig = px.bar(
-        comparison,
-        x="Period",
-        y=rate_column,
-        color="Period",
-        title="Before vs After COVID-19 Unemployment",
-        color_discrete_sequence=[
-            "#00D9FF",
-            "#0077B6"
-        ]
-    )
+    fig = px.bar(comparison, x="Period", y=rate_column, color="Period", title="Before vs After COVID-19 Unemployment", color_discrete_sequence=[ "#00D9FF",  "#0077B6"])
     apply_chart_theme(fig)
     st.plotly_chart(fig, use_container_width=True)
     st.subheader("COVID-19 Comparison")
@@ -325,9 +304,9 @@ elif page == "Dataset":
     st.write("Explore and download the complete dataset.")
     search = st.text_input("Search by State / Region")
     display_df = df.copy()
-
     if search and "Region" in display_df.columns:
-        display_df = display_df[display_df["Region"].str.contains(search, case=False, na=False)]
+        display_df = display_df[
+            display_df["Region"].str.contains(search, case=False, na=False)]
     st.dataframe(display_df, use_container_width=True, height=450)
     csv = display_df.to_csv(index=False).encode("utf-8")
     st.download_button(label="Download Dataset", data=csv, file_name="unemployment_analysis.csv", mime="text/csv")
