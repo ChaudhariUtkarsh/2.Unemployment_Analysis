@@ -104,11 +104,3 @@ http://localhost:8501
 ## Internship
 
 This project was developed as part of the **Oasis Infobyte Data Science Internship**.
-
-
-
-
-
-
-
-
