@@ -2,323 +2,329 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import base64
 import os
 
+
 # PAGE CONFIGURATION
-st.set_page_config(page_title="Unemployment Analysis", page_icon=" ", layout="wide")
+st.set_page_config(page_title="Unemployment Analysis Dashboard", page_icon=" ", layout="wide")
 
 
-# BACKGROUND IMAGE + WHITE TEXT THEME
-def set_background(image_file):
-    if not os.path.exists(image_file):
-        st.error("Background image not found: " + image_file)
-        return
-    with open(image_file, "rb") as file:
-        encoded = base64.b64encode(file.read()).decode()
+# BACKGROUND IMAGE
+def set_background(image_path):
+    if os.path.exists(image_path):
+        import base64
+        with open(image_path, "rb") as image:
+            encoded = base64.b64encode(image.read()).decode()
+        st.markdown(
+            f"""
+            <style>
+            .stApp {{
+                background-image: url("data:image/jpg;base64,{encoded}");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            }}
 
-    st.markdown(
-        f"""
-        <style>
+            [data-testid="stHeader"] {{
+                background-color: rgba(0,0,0,0);
+            }}
 
-        .stApp {{
-            background-image:
-                linear-gradient(
-                    rgba(3, 12, 30, 0.48),
-                    rgba(3, 12, 30, 0.48)
-                ),
-                url("data:image/jpeg;base64,{encoded}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }}
-
-        .stApp h1,
-        .stApp h2,
-        .stApp h3,
-        .stApp h4,
-        .stApp p,
-        .stApp label,
-        .stApp li,
-        .stApp span {{
-            color: #FFFFFF !important;
-        }}
-
-        [data-testid="stHeader"] {{
-            background: rgba(0,0,0,0);
-        }}
-
-        [data-testid="stSidebar"] {{
-            background-color: rgba(3, 15, 38, 0.95);
-            border-right: 1px solid #00D9FF;
-        }}
-
-        [data-testid="stSidebar"] * {{
-            color: #FFFFFF !important;
-        }}
-
-        [data-testid="stMetric"] {{
-            background-color: rgba(5, 30, 65, 0.82);
-            padding: 20px;
-            border-radius: 14px;
-            border: 1px solid rgba(0, 217, 255, 0.5);
-        }}
-
-        [data-testid="stMetricValue"] {{
-            color: #00E5FF !important;
-            font-weight: bold;
-        }}
-
-        [data-testid="stMetricLabel"] {{
-            color: #FFFFFF !important;
-        }}
-
-        .stButton button,
-        .stDownloadButton button {{
-            background-color: #0077B6;
-            color: white !important;
-            border: 1px solid #00D9FF;
-            border-radius: 8px;
-        }}
-
-        .stButton button p,
-        .stDownloadButton button p {{
-            color: white !important;
-        }}
-
-        .stButton button:hover,
-        .stDownloadButton button:hover {{
-            background-color: #005F8D;
-            border-color: #FFFFFF;
-        }}
-
-        .stTextInput input {{
-            background-color: rgba(255,255,255,0.95);
-            color: #000000 !important;
-        }}
-
-        div[data-baseweb="select"] {{
-            background-color: white;
-            border-radius: 8px;
-        }}
-
-        div[data-baseweb="select"] * {{
-            color: #000000 !important;
-        }}
-
-        hr {{
-            border-color: rgba(0,217,255,0.5);
-        }}
-
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-
+            .block-container {{
+                background-color: rgba(255,255,255,0.88);
+                padding: 2rem;
+                border-radius: 12px;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 set_background("images/background.jpg")
 
 
-# LOAD DATASET
+# CUSTOM CSS
+st.markdown(
+    """
+    <style>
+    h1, h2, h3 {
+        color: #17365D;
+    }
+    .stMetric {
+        background-color: white;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #dddddd;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# DATA LOADING AND CLEANING
 @st.cache_data
 def load_data():
-
-    possible_files = ["Unemployment in India.csv", "Unemployment_in_India.csv"]
-    file_path = None
-
-    for file in possible_files:
-        if os.path.exists(file):
-            file_path = file
-            break
-
-    if file_path is None:
+    file_path = "Unemployment in India.csv"
+    if not os.path.exists(file_path):
         return None
+    data = pd.read_csv(file_path)
 
-    # Read Dataset
-    df = pd.read_csv(file_path)
+    # Clean column names
+    data.columns = data.columns.str.strip()
 
-    # Remove Extra Spaces from Column Names
-    df.columns = df.columns.str.strip()
+    # Clean text columns
+    for col in ["Region", "Area", "Frequency"]:
+        if col in data.columns:
+            data[col] = data[col].astype("string").str.strip()
 
-    # Convert Date Column
-    if "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce", dayfirst=True)
+    # Date conversion
+    data["Date"] = pd.to_datetime(data["Date"], dayfirst=True, errors="coerce")
 
-    # Convert Numerical Columns
+    # Numeric conversion
     numeric_columns = ["Estimated Unemployment Rate (%)", "Estimated Employed", "Estimated Labour Participation Rate (%)"]
     for col in numeric_columns:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+        data[col] = pd.to_numeric(data[col], errors="coerce")
 
-    # Clean Text Columns
-    if "Region" in df.columns:
-        df["Region"] = df["Region"].astype("string").str.strip()
+    # Remove missing important values
+    required_columns = ["Region", "Date", "Estimated Unemployment Rate (%)", "Estimated Employed", "Estimated Labour Participation Rate (%)"]
+    data = data.dropna(subset=required_columns)
 
-    if "Area" in df.columns:
-        df["Area"] = df["Area"].astype("string").str.strip()
+    # Remove duplicate rows
+    data = data.drop_duplicates()
 
-    # Remove Missing Values
-    df = df.dropna(subset=[ "Region", "Date", "Estimated Unemployment Rate (%)", "Estimated Employed", "Estimated Labour Participation Rate (%)"])
-
-    # Remove Duplicate Records
-    df = df.drop_duplicates()
-    return df
-
+    # Add month column
+    data["Month"] = data["Date"].dt.to_period("M").astype(str)
+    return data.reset_index(drop=True)
 df = load_data()
 
-
-# CHECK DATASET
 if df is None:
-    st.error("Dataset not found! Keep your CSV file in the same folder as app.py.")
+    st.error("Dataset not found! Keep 'Unemployment in India.csv' in the same folder as app.py.")
     st.stop()
 
-
-# CHECK REQUIRED COLUMN
-rate_column = "Estimated Unemployment Rate (%)"
-if rate_column not in df.columns:
-    st.error("Unemployment rate column is missing from the dataset.")
+if df.empty:
+    st.error("No valid records found in the dataset.")
     st.stop()
 
 
 # SIDEBAR NAVIGATION
 st.sidebar.title("Unemployment Analysis")
-st.sidebar.markdown("---")
+st.sidebar.write("India Unemployment Data Analysis")
 page = st.sidebar.radio("Navigation", ["Home", "Dashboard", "State Analysis", "COVID Analysis", "Dataset"])
 st.sidebar.markdown("---")
-st.sidebar.info("Python Data Science Project")
-
-
-# PLOTLY THEME FUNCTION
-def apply_chart_theme(fig):
-    fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(3, 12, 30, 0.65)", plot_bgcolor="rgba(3, 12, 30, 0.45)", font=dict(color="white"), title_font=dict(color="#00E5FF"), legend=dict(font=dict(color="white")))
-    return fig
+st.sidebar.info("Oasis Infobyte Internship - Task 2")
 
 
 # HOME PAGE
 if page == "Home":
     st.title("Unemployment Analysis in India")
-    st.subheader("Welcome to Unemployment Analysis Dashboard")
-    st.write("""This project analyzes unemployment trends in India using Python, Pandas, NumPy, Plotly and Streamlit.""")
-    st.markdown("---")
-
-    st.markdown("### Project Objectives")
-    st.markdown(
+    st.subheader("Data Analysis and Visualization Dashboard")
+    st.write(
         """
-        - Analyze unemployment rates across Indian states.
-        - Understand employment trends.
-        - Compare rural and urban unemployment.
-        - Study the impact of COVID-19.
-        - Visualize important unemployment statistics.
+        This project analyzes unemployment trends across
+        different regions of India using Python.
+        The dashboard provides insights into unemployment
+        rates, employment estimates, labour participation,
+        regional differences and COVID-period comparisons.
         """
     )
-    st.markdown("---")
 
+    st.markdown("---")
     col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total Records", f"{len(df):,}")
-    with col2:
-        if "Region" in df.columns:
-            st.metric("Total States / Regions", df["Region"].nunique())
-    with col3:
-        average = df[rate_column].mean()
-        st.metric("Average Unemployment", f"{average:.2f}%")
+    col1.metric("Total Records", f"{len(df):,}")
+    col2.metric("Total Regions", df["Region"].nunique())
+    col3.metric("Average Unemployment", f"{df['Estimated Unemployment Rate (%)'].mean():.2f}%")
+    st.markdown("---")
+    st.subheader("Project Objectives")
+    st.markdown(
+        """
+        - Analyze unemployment rates across Indian regions.
+        - Understand monthly unemployment trends.
+        - Compare unemployment in major states.
+        - Identify regions with high unemployment.
+        - Study relationships between numerical variables.
+        - Compare pre-COVID and post-COVID unemployment.
+        """
+    )
+    st.subheader("Dataset Preview")
+    st.dataframe(df.head(10), use_container_width=True)
 
 
 # DASHBOARD PAGE
 elif page == "Dashboard":
     st.title("Unemployment Dashboard")
-    avg_rate = df[rate_column].mean()
-    max_rate = df[rate_column].max()
-    min_rate = df[rate_column].min()
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Average Unemployment", f"{avg_rate:.2f}%")
-    col2.metric("Maximum Unemployment", f"{max_rate:.2f}%")
-    col3.metric("Minimum Unemployment", f"{min_rate:.2f}%")
+    # KPI Metrics
+    col1, col2, col3, col4 = st.columns(4)
+    avg_unemployment = df["Estimated Unemployment Rate (%)"].mean()
+    total_employed = df["Estimated Employed"].mean()
+    avg_participation = df["Estimated Labour Participation Rate (%)"].mean()
+    col1.metric("Average Unemployment", f"{avg_unemployment:.2f}%")
+    col2.metric("Average Estimated Employed", f"{total_employed:,.0f}")
+    col3.metric("Labour Participation", f"{avg_participation:.2f}%")
+    col4.metric("Total Regions", df["Region"].nunique())
     st.markdown("---")
 
-    # Monthly Trend
-    if "Date" in df.columns:
-        monthly_data = (df.dropna(subset=["Date"]).set_index("Date").resample("ME")[rate_column].mean().reset_index())
-        fig = px.line(monthly_data, x="Date", y=rate_column, title="Monthly Unemployment Rate Trend", markers=True, color_discrete_sequence=["#00E5FF"])
-        apply_chart_theme(fig)
-        st.plotly_chart( fig, use_container_width=True)
 
-    # State-wise Analysis
-    if "Region" in df.columns:
-        state_data = (df.groupby("Region")[rate_column].mean().reset_index().sort_values(by=rate_column, ascending=False).head(10))
-        fig = px.bar(state_data, x="Region", y=rate_column, title="Top 10 Regions by Average Unemployment Rate", color=rate_column, color_continuous_scale="Blues")
-        apply_chart_theme(fig)
-        st.plotly_chart(fig, use_container_width=True)
+    # MONTHLY TREND
+    st.subheader("Monthly Unemployment Trend")
+    monthly_data = (df.groupby("Month")["Estimated Unemployment Rate (%)"].mean().reset_index())
+    monthly_data["Month"] = pd.to_datetime(monthly_data["Month"])
+    fig_monthly = px.line(monthly_data, x="Month", y="Estimated Unemployment Rate (%)", markers=True, title="Monthly Average Unemployment Rate", labels={"Month": "Month", "Estimated Unemployment Rate (%)": "Unemployment Rate (%)"})
+    st.plotly_chart(fig_monthly, use_container_width=True)
+
+
+    # TOP 10 REGIONS
+    st.subheader("Top 10 Regions by Unemployment Rate")
+    top_10 = (df.groupby("Region")["Estimated Unemployment Rate (%)"].mean().sort_values(ascending=False).head(10).reset_index())
+    fig_top10 = px.bar(top_10, x="Estimated Unemployment Rate (%)", y="Region", orientation="h", color="Estimated Unemployment Rate (%)", color_continuous_scale="Reds", title="Top 10 Regions with Highest Average Unemployment")
+    fig_top10.update_layout(yaxis={"categoryorder": "total ascending"})
+    st.plotly_chart(fig_top10, use_container_width=True)
+
+
+    # THREE-STATE COMBINED CHART
+    st.subheader("Three-State Combined Comparison")
+    major_states = ["Maharashtra", "Uttar Pradesh", "Karnataka"]
+    state_data = df[df["Region"].isin(major_states)].copy()
+    available_states = state_data["Region"].unique()
+
+    if len(available_states) > 0:
+        three_state_data = (state_data.groupby(["Date", "Region"])["Estimated Unemployment Rate (%)"].mean().reset_index())
+        fig_states = px.line(
+            three_state_data,
+            x="Date",
+            y="Estimated Unemployment Rate (%)",
+            color="Region",
+            markers=True,
+            title="Maharashtra vs Uttar Pradesh vs Karnataka",
+            labels={"Date": "Date", "Estimated Unemployment Rate (%)": "Unemployment Rate (%)", "Region": "State"}
+        )
+        fig_states.update_layout(hovermode="x unified")
+        st.plotly_chart(fig_states, use_container_width=True)
+        if len(available_states) < 3:
+            st.warning("Some selected states are not available in the dataset.")
+    else:
+        st.warning("Maharashtra, Uttar Pradesh and Karnataka data not found in the dataset.")
+
+
+    # CORRELATION HEATMAP
+    st.subheader("Correlation Heatmap")
+    correlation_columns = ["Estimated Unemployment Rate (%)", "Estimated Employed", "Estimated Labour Participation Rate (%)"]
+    correlation_data = df[correlation_columns].apply(pd.to_numeric, errors="coerce")
+    correlation_matrix = correlation_data.corr()
+    fig_heatmap = px.imshow(correlation_matrix, text_auto=".2f", color_continuous_scale="RdBu_r", aspect="auto", title="Correlation Between Unemployment, Employment and Labour Participation")
+    st.plotly_chart(fig_heatmap, use_container_width=True)
+    st.caption("Estimated Employed represents employment count, not employment rate. Correlation does not imply causation.")
 
 
 # STATE ANALYSIS PAGE
 elif page == "State Analysis":
-    st.title("State-wise Unemployment Analysis")
+    st.title("State-wise Analysis")
+    states = sorted(df["Region"].dropna().unique().tolist())
+    selected_state = st.selectbox("Select a State", states)
+    state_df = df[df["Region"] == selected_state].copy()
+    st.subheader(f"Unemployment Analysis: {selected_state}")
 
-    if "Region" not in df.columns:
-        st.error("Region column is missing.")
-        st.stop()
-    selected_region = st.selectbox("Select State / Region", sorted(df["Region"].dropna().unique()))
-    state_data = df[df["Region"] == selected_region].copy()
-    st.subheader(f"Analysis for {selected_region}")
+    col1, col2 = st.columns(2)
+    col1.metric("Average Unemployment Rate", f"{state_df['Estimated Unemployment Rate (%)'].mean():.2f}%")
+    col2.metric("Average Estimated Employed", f"{state_df['Estimated Employed'].mean():,.0f}")
 
-    # State-wise Trend
-    if "Date" in state_data.columns:
-        state_data = state_data.sort_values("Date")
-        fig = px.line(state_data, x="Date", y=rate_column, title=f"Unemployment Trend - {selected_region}", markers=True, color_discrete_sequence=["#00E5FF"])
-        apply_chart_theme(fig)
-        st.plotly_chart(fig, use_container_width=True)
+    # State trend
+    state_trend = (state_df.groupby("Date")["Estimated Unemployment Rate (%)"].mean().reset_index())
+    fig_state = px.line(state_trend, x="Date", y="Estimated Unemployment Rate (%)", markers=True, title=f"Unemployment Trend - {selected_state}")
+    st.plotly_chart(fig_state, use_container_width=True)
 
-    # Rural vs Urban Analysis
-    if "Area" in state_data.columns:
-        area_data = (state_data.groupby("Area")[rate_column].mean().reset_index())
-        fig = px.bar(area_data, x="Area", y=rate_column, color="Area", title="Rural vs Urban Unemployment", color_discrete_sequence=[ "#00D9FF",  "#0077B6"])
-        apply_chart_theme(fig)
-        st.plotly_chart(fig, use_container_width=True)
+    # Rural vs Urban
+    if "Area" in state_df.columns:
+        st.subheader("Rural vs Urban Comparison")
+        area_data = (state_df.groupby("Area")["Estimated Unemployment Rate (%)"].mean().reset_index())
+        fig_area = px.bar(area_data, x="Area", y="Estimated Unemployment Rate (%)", color="Area", title="Average Unemployment Rate: Rural vs Urban")
+        st.plotly_chart(fig_area, use_container_width=True)
     st.subheader("State Dataset")
-    st.dataframe(state_data, use_container_width=True)
+    st.dataframe(state_df, use_container_width=True)
 
 
 # COVID ANALYSIS PAGE
 elif page == "COVID Analysis":
-    st.title("COVID-19 Impact on Unemployment")
-    if "Date" not in df.columns:
-        st.error("Date column is missing.")
-        st.stop()
-    covid_date = pd.Timestamp("2020-03-25")
-    covid_data = df.dropna(subset=["Date"]).copy()
-    covid_data["Period"] = np.where(covid_data["Date"] < covid_date, "Before COVID", "After COVID")
-    comparison = (covid_data.groupby("Period")[rate_column].mean().reset_index())
-    fig = px.bar(comparison, x="Period", y=rate_column, color="Period", title="Before vs After COVID-19 Unemployment", color_discrete_sequence=[ "#00D9FF",  "#0077B6"])
-    apply_chart_theme(fig)
-    st.plotly_chart(fig, use_container_width=True)
-    st.subheader("COVID-19 Comparison")
-    st.dataframe(comparison, use_container_width=True)
+    st.title("Pre-COVID vs Post-COVID Analysis")
+    COVID_DATE = pd.Timestamp("2020-03-01")
+    pre_covid = df[df["Date"] < COVID_DATE]
+    post_covid = df[df["Date"] >= COVID_DATE]
+    pre_avg = pre_covid["Estimated Unemployment Rate (%)"].mean()
+    post_avg = post_covid["Estimated Unemployment Rate (%)"].mean()
+    difference = post_avg - pre_avg
+    st.info(f"Comparison cutoff date: {COVID_DATE.date()}")
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Pre-COVID Average", f"{pre_avg:.2f}%" if pd.notna(pre_avg) else "N/A")
+    col2.metric("Post-COVID Average", f"{post_avg:.2f}%" if pd.notna(post_avg) else "N/A")
+    col3.metric("Difference", f"{difference:.2f} pp" if pd.notna(difference) else "N/A")
+
+    comparison = pd.DataFrame({"Period": ["Pre-COVID", "Post-COVID"], "Average Unemployment Rate": [pre_avg, post_avg]})
+    fig_covid = px.bar(comparison, x="Period", y="Average Unemployment Rate", color="Period", title="Pre-COVID vs Post-COVID Unemployment Rate", text_auto=".2f")
+    st.plotly_chart(fig_covid, use_container_width=True)
+    st.subheader("COVID Period Observations")
+    if pd.notna(pre_avg) and pd.notna(post_avg):
+
+        if difference > 0:
+            st.write(
+                f"The average unemployment rate increased "
+                f"by {difference:.2f} percentage points "
+                f"in the post-COVID period."
+            )
+
+        elif difference < 0:
+            st.write(
+                f"The average unemployment rate decreased "
+                f"by {abs(difference):.2f} percentage points "
+                f"in the post-COVID period."
+            )
+        else:
+            st.write("The average unemployment rate remained the same.")
+    st.caption("This comparison describes the available dataset. It does not establish that COVID-19 alone caused the observed changes.")
 
 
 # DATASET PAGE
 elif page == "Dataset":
     st.title("Unemployment Dataset")
-    st.write("Explore and download the complete dataset.")
-    search = st.text_input("Search by State / Region")
-    display_df = df.copy()
-    if search and "Region" in display_df.columns:
-        display_df = display_df[
-            display_df["Region"].str.contains(search, case=False, na=False)]
-    st.dataframe(display_df, use_container_width=True, height=450)
-    csv = display_df.to_csv(index=False).encode("utf-8")
-    st.download_button(label="Download Dataset", data=csv, file_name="unemployment_analysis.csv", mime="text/csv")
+    st.write("Explore, filter and download the unemployment dataset.")
+    search_region = st.selectbox("Filter by Region", ["All"] + sorted( df["Region"].dropna().unique().tolist()))
+
+    if search_region != "All":
+        display_df = df[df["Region"] == search_region]
+    else:
+        display_df = df.copy()
+
+    st.subheader("Dataset Preview")
+    st.dataframe(display_df, use_container_width=True)
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    col1.metric("Rows", len(display_df))
+    col2.metric("Columns", len(display_df.columns))
+
+    # Download filtered dataset
+    csv_data = display_df.to_csv(index=False).encode("utf-8")
+    st.download_button(label="Download Dataset as CSV", data=csv_data, file_name="cleaned_unemployment_data.csv", mime="text/csv")
+    st.markdown("---")
+
+    st.subheader("Dataset Information")
+
+    st.write("Column Names:")
+    st.write(df.columns.tolist())
+
+    st.write("Missing Values:")
+    st.dataframe(df.isnull().sum().rename("Missing Values"))
+
+    st.write("Statistical Summary:")
+    st.dataframe(df.describe(include="all"), use_container_width=True)
 
 
 # FOOTER
 st.markdown("---")
 st.markdown(
     """
-    <div style="text-align:center; padding:10px;">
-        <p>Unemployment Analysis with Python</p>
-        <p>Developed using Python, Pandas, NumPy, Plotly and Streamlit</p>
+    <div style="text-align:center;">
+        <p><b>Unemployment Analysis in India</b></p>
+        <p>Developed using Python, Streamlit, Pandas and Plotly</p>
+        <p>Oasis Infobyte Internship - Task 2</p>
     </div>
     """,
     unsafe_allow_html=True
