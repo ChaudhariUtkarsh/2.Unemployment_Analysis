@@ -210,7 +210,7 @@ elif page == "Dashboard":
     correlation_columns = ["Estimated Unemployment Rate (%)", "Estimated Employed", "Estimated Labour Participation Rate (%)"]
     correlation_data = df[correlation_columns].apply(pd.to_numeric, errors="coerce")
     correlation_matrix = correlation_data.corr()
-    fig_heatmap = px.imshow(correlation_matrix, text_auto=".2f", color_continuous_scale="RdBu_r", aspect="auto", title="Correlation Between Unemployment, Employment and Labour Participation")
+    fig_heatmap = px.imshow(correlation_matrix, text_auto=".2f", color_continuous_scale="RdBu_r", aspect="auto", title="Correlation Between Unemployment Rate, Employment Count and Labour Participation Rate")
     st.plotly_chart(fig_heatmap, use_container_width=True)
     st.caption("Estimated Employed represents employment count, not employment rate. Correlation does not imply causation.")
 
