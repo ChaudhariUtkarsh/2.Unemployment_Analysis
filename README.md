@@ -1,182 +1,159 @@
-# 📊 Unemployment Analysis with Python
+# Unemployment Analysis with Python
 
-## 📌 Project Overview
+## Project Overview
 
-Unemployment Analysis with Python is a data analysis project focused on understanding unemployment trends across different regions of India.
+The **Unemployment Analysis with Python** project focuses on performing Exploratory Data Analysis (EDA) on unemployment data in India. The project explores regional unemployment patterns, monthly trends, employment indicators, and the impact of the COVID-19 period.
 
-The project uses Python libraries to clean, analyze, and visualize unemployment data. It explores region-wise unemployment rates, monthly trends, state-wise comparisons, correlations between numerical variables, and changes in unemployment before and after March 2020.
+The project uses Python data analysis and visualization libraries to understand unemployment trends and present insights through a Jupyter Notebook and an interactive Streamlit dashboard.
 
-The main objective is to identify unemployment patterns and present meaningful insights through interactive visualizations and a Jupyter Notebook.
+## Objectives
 
----
+- Analyze unemployment trends across different Indian regions.
+- Study month-wise unemployment rate changes.
+- Compare unemployment trends across major states.
+- Identify the top 10 regions with the highest average unemployment rate.
+- Examine correlations between unemployment rate, employment count, and labour participation rate.
+- Compare unemployment levels before and after the COVID-19 split date.
+- Build an interactive Streamlit dashboard for data exploration.
 
-## 🎯 Project Objectives
-
-- Analyze unemployment rates across different regions of India.
-- Study monthly unemployment trends.
-- Compare unemployment rates across three major states.
-- Identify the top 10 regions with the highest average unemployment rates.
-- Analyze correlations between unemployment rate, employment count, and labour participation rate.
-- Compare Pre-COVID and Post-COVID unemployment rates.
-- Generate a cleaned dataset for further analysis.
-
----
-
-## 📂 Dataset Information
+## Dataset Information
 
 **Dataset Name:** Unemployment in India
 
-**Dataset Source:** Kaggle
+**Source:** Kaggle
 
-**Dataset Author:** Gokulraj K M V
-
-**Kaggle Link:**  
+**Dataset Link:**  
 https://www.kaggle.com/datasets/gokulrajkmv/unemployment-in-india
 
-**Original Dataset File:** `Unemployment in India.csv`
+**Dataset Details:**
+- Original records: 768 rows
+- Original columns: 7
+- Regions: 28
+- Date range after cleaning: May 2019 – June 2020
 
-**Original Dataset Shape:** 768 rows × 7 columns
+**Dataset Columns:**
+- `Region`
+- `Date`
+- `Frequency`
+- `Estimated Unemployment Rate (%)`
+- `Estimated Employed`
+- `Estimated Labour Participation Rate (%)`
+- `Area`
 
-**Data Period:** May 2019 – June 2020
+The cleaned dataset also includes a `Month` column for monthly analysis.
 
-The dataset contains unemployment-related information across Indian regions, including Rural and Urban areas.
-
-### Dataset Columns
-
-| Column | Description |
-|---|---|
-| Region | Name of the Indian region |
-| Date | Observation date |
-| Frequency | Data observation frequency |
-| Estimated Unemployment Rate (%) | Estimated unemployment percentage |
-| Estimated Employed | Estimated number of employed people |
-| Estimated Labour Participation Rate (%) | Labour participation percentage |
-| Area | Rural or Urban area |
-
----
-
-## 🛠️ Technologies Used
+## Technologies Used
 
 - Python
 - Pandas
 - NumPy
 - Matplotlib
 - Seaborn
-- Streamlit
 - Plotly
+- Streamlit
 - Jupyter Notebook
 
----
+## Project Features
 
-## 📋 Project Features
+### 1. Data Loading and Inspection
+- Load the unemployment dataset.
+- Inspect dataset shape and column information.
+- Check missing values and duplicate records.
 
-### 1. Data Loading
-- Load the unemployment dataset using Pandas.
-- Display the first few records.
-
-### 2. Shape Inspection
-- Check the number of rows and columns.
-- Display column names and dataset information.
-- Generate statistical summaries.
-
-### 3. Missing Value Analysis
-- Identify missing values in each column.
-- Check duplicate records.
-
-### 4. Data Cleaning and Type Conversion
-- Remove extra spaces from column names and text values.
-- Convert Date into datetime format.
-- Convert numerical columns into appropriate numeric types.
-- Remove rows with missing essential values.
+### 2. Data Cleaning
+- Remove unnecessary spaces from column names.
+- Convert date and numerical columns into appropriate data types.
+- Handle missing values.
 - Remove duplicate records.
+- Create a Month column.
 
-### 5. Region-wise Analysis
-- Calculate average unemployment rates for each region.
-- Visualize region-wise unemployment rates using a bar chart.
+### 3. Region-wise Analysis
+- Calculate average unemployment rates by region.
+- Visualize regional unemployment comparisons.
 
-### 6. Month-wise Trends
-- Calculate monthly average unemployment rates.
-- Display changes in unemployment using a line chart.
+### 4. Month-wise Trend Analysis
+- Analyze monthly changes in unemployment rates.
+- Display trends using line charts.
 
-### 7. Three-State Combined Chart
-- Compare unemployment trends for:
-  - Maharashtra
-  - Uttar Pradesh
-  - Karnataka
-- Visualize state-wise changes using a combined time-series line chart.
+### 5. Three-State Combined Chart
+- Compare Maharashtra, Uttar Pradesh, and Karnataka.
+- Visualize monthly unemployment trends together.
 
-### 8. Top 10 Regions Bar Chart
+### 6. Top 10 Regions Analysis
 - Identify the top 10 regions with the highest average unemployment rates.
-- Display the results using a horizontal bar chart.
+- Display results using a bar chart.
 
-### 9. Correlation Heatmap
-- Analyze the correlation between:
+### 7. Correlation Heatmap
+- Analyze correlations between:
   - Estimated Unemployment Rate (%)
-  - Estimated Employed (Employment Count)
+  - Estimated Employed
   - Estimated Labour Participation Rate (%)
-- Visualize relationships using a Seaborn heatmap.
 
-**Note:** Estimated Employed represents employment count, not employment rate.
+**Dataset Limitation:** The dataset provides Estimated Employed as an employment count, not an employment-rate percentage. Therefore, the heatmap uses Employment Count.
 
-### 10. Pre-COVID vs Post-COVID Analysis
-- Divide the dataset using 1 March 2020 as the cutoff date.
-- Pre-COVID: Before 1 March 2020.
-- Post-COVID: On or after 1 March 2020.
-- Calculate average unemployment rates for both periods.
-- Compare results using a bar chart.
+### 8. Pre-COVID vs Post-COVID Analysis
+- COVID split date: `2020-03-01`
+- Calculate average unemployment rate before the split date.
+- Calculate average unemployment rate on and after the split date.
+- Compare both periods using a bar chart.
 
-### 11. Written Observations
-- Add seven Markdown observation sections between analysis and visualization sections.
-- Explain important patterns and findings.
+### 9. Written Observations
+- Include seven Markdown observation sections in the Jupyter Notebook.
+- Explain data cleaning, regional trends, monthly trends, state comparisons, top 10 regions, correlation, and COVID-period analysis.
 
-### 12. Final Findings
-- Display overall average unemployment rate.
-- Identify regions with the highest and lowest average unemployment rates.
-- Display Pre-COVID and Post-COVID comparisons.
-
-### 13. Cleaned Dataset Export
+### 10. Cleaned Dataset Export
 - Export the cleaned dataset as `cleaned_unemployment_data.csv`.
+- Verify the exported dataset's shape and missing values.
 
----
+## Streamlit Dashboard Features
 
-## 📊 Streamlit Dashboard Features
+The interactive Streamlit application includes the following pages:
 
-The project also includes an interactive Streamlit dashboard.
+### Home
+- Project introduction.
+- Overview of unemployment analysis.
 
-### Dashboard Pages
+### Dashboard
+- Key performance indicators.
+- Monthly unemployment trend.
+- Top 10 regions chart.
+- Three-state combined chart.
+- Correlation heatmap.
 
-- **Home:** Project introduction and overview.
-- **Dashboard:** Key unemployment statistics, monthly trends, Top 10 regions, Three-State Combined Chart, and Correlation Heatmap.
-- **State Analysis:** State-wise unemployment trends and Rural vs Urban analysis.
-- **COVID Analysis:** Pre-COVID and Post-COVID comparison.
-- **Dataset:** Dataset preview, filtering, and CSV download.
+### State Analysis
+- Select and analyze individual regions.
+- View unemployment trends.
+- Compare Rural and Urban areas.
 
----
+### COVID Analysis
+- Pre-COVID and Post-COVID comparison.
+- Average unemployment rate analysis.
 
-## 📁 Project Structure
+### Dataset
+- View cleaned dataset.
+- Filter records.
+- Download dataset as CSV.
+- Inspect dataset information.
+
+## Project Structure
 
 ```text
 2.Unemployment_Analysis/
 │
 ├── app.py
-│
-├── Unemployment in India.csv
-│
-├── cleaned_unemployment_data.csv
-│
 ├── Unemployment_Analysis.ipynb
 │
-├── README.md
+├── Unemployment in India.csv
+├── cleaned_unemployment_data.csv
 │
+├── README.md
 ├── requirements.txt
 │
 └── images/
     └── background.jpg
 ```
 
----
-
-## ⚙️ Installation and Setup
+## Installation and Setup
 
 ### Step 1: Clone the Repository
 
@@ -184,110 +161,85 @@ The project also includes an interactive Streamlit dashboard.
 git clone YOUR_GITHUB_REPOSITORY_URL
 ```
 
-### Step 2: Navigate to Project Folder
+### Step 2: Navigate to the Project Folder
 
 ```bash
 cd 2.Unemployment_Analysis
 ```
 
-### Step 3: Create Virtual Environment
+### Step 3: Create a Virtual Environment (Optional)
 
 ```bash
 python -m venv venv
 ```
 
-### Step 4: Activate Virtual Environment
+Activate it on Windows:
 
-**Windows PowerShell:**
-
-```powershell
-.\venv\Scripts\Activate.ps1
+```bash
+venv\Scripts\activate
 ```
 
-### Step 5: Install Required Libraries
+### Step 4: Install Required Libraries
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 6: Run Jupyter Notebook
+### Step 5: Run Jupyter Notebook
 
 ```bash
 jupyter notebook
 ```
 
-Open `Unemployment_Analysis.ipynb` and select:
+Open `Unemployment_Analysis.ipynb` and execute the cells.
 
-**Kernel → Restart Kernel and Run All Cells**
-
-### Step 7: Run Streamlit Application
+### Step 6: Run Streamlit Application
 
 ```bash
 streamlit run app.py
 ```
 
-The application will open in your browser.
+The application will open in your default browser.
 
----
+## Requirements
 
-## 📦 Requirements
-
-Example `requirements.txt`:
+Create a `requirements.txt` file with:
 
 ```text
+streamlit
 pandas
 numpy
+plotly
 matplotlib
 seaborn
-streamlit
-plotly
 jupyter
 ```
 
----
+Install dependencies using:
 
-## 📈 Expected Project Outcomes
+```bash
+pip install -r requirements.txt
+```
 
-- Understanding unemployment patterns across Indian regions.
-- Identifying regions with relatively high unemployment rates.
-- Analyzing monthly unemployment changes.
-- Comparing unemployment trends across selected states.
-- Understanding correlations between unemployment, employment count, and labour participation.
-- Comparing average unemployment rates before and after March 2020.
-- Creating an interactive unemployment analysis dashboard.
+## Limitations
 
----
+- The dataset covers May 2019 to June 2020 after cleaning, so it does not represent current unemployment statistics.
+- The dataset contains an employment count rather than an employment-rate percentage.
+- The COVID analysis is a descriptive comparison and does not establish causation.
+- Correlation between variables does not imply a cause-and-effect relationship.
+- Findings depend on the quality and coverage of the supplied dataset.
 
-## ⚠️ Limitations
+## Conclusion
 
-- The dataset covers May 2019 to June 2020 only.
-- The analysis depends on the quality and coverage of the available dataset.
-- Correlation does not establish causation.
-- The Pre-COVID and Post-COVID comparison shows differences in averages but does not prove that COVID-19 caused those changes.
-- The results should not be interpreted as current unemployment statistics.
+The Unemployment Analysis with Python project provides an exploratory understanding of unemployment trends across Indian regions and over time.
 
----
+Through data cleaning, statistical analysis, visualizations, correlation analysis, and pre-COVID versus post-COVID comparison, the project highlights patterns in the available unemployment dataset.
 
-## 👨‍💻 Author
-
-**Utkarsh Y. Chaudhari**
-
-BE – Information Technology  
-Data Science
+The Streamlit dashboard makes the analysis accessible through an interactive interface.
 
 ---
 
-## 🏁 Conclusion
-
-This project demonstrates how Python can be used for data cleaning, exploratory data analysis, statistical analysis, and visualization.
-
-By analyzing unemployment data across Indian regions, the project provides insights into regional differences, monthly trends, state-wise comparisons, and Pre-COVID vs Post-COVID unemployment patterns.
-
-The Jupyter Notebook and Streamlit dashboard make the analysis easier to understand and explore.
-
----
-
-## 🔗 Dataset Reference
-
-Kaggle – Unemployment in India:  
-https://www.kaggle.com/datasets/gokulrajkmv/unemployment-in-india
+**Project:** Unemployment Analysis with Python  
+**Internship Organization:** Oasis Infobyte  
+**Task:** Task 2 – Data Science Internship  
+**Tools:** Python, Pandas, NumPy, Matplotlib, Seaborn, Plotly, Streamlit, Jupyter Notebook
